@@ -10,3 +10,7 @@ Install the necessary requirements. Import your data into the main.py file and m
 - Numpy
 - Matplotlib
 - Tensorflow or Theano
+
+## Supported Datasets 
+ - CIFAR10 
+ - MNIST (no code modificiation required)
