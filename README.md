@@ -4,10 +4,9 @@ A Keras implementation of the [Boundary Equilibrium GAN Paper](https://arxiv.org
 ## Usage
 Install the necessary requirements. Import your data into the main.py file and make the appropriate parameter changes. The correctness of this implementation is still being verified.
 
-
 ## Requirements
 - Python 3
-- Keras 1
+- Keras 2
 - Numpy
 - Matplotlib
 - Tensorflow or Theano
