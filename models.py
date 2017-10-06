@@ -1,9 +1,10 @@
 import numpy as np
 import keras.backend as K
 from keras.models import Model
-from keras.layers import Input
-from keras.layers.core import Flatten, Dense, Reshape
-from keras.layers.convolutional import Convolution2D, UpSampling2D
+from keras.layers import Input, Flatten, Dense, Reshape
+# from keras.layers.core import Flatten, Dense, Reshape
+# from keras.layers.convolutional import Convolution2D, UpSampling2D
+from keras.layers import Conv2D, UpSampling2D
 
 def l1Loss(y_true, y_pred):
     return K.mean(K.abs(y_true - y_pred))
@@ -24,22 +25,24 @@ def decoder(h, img_dim, channels, n = 128):
     channels -- 1 or 3 depending on whether the images have color channels or not.
     n -- Number of convolution filters, paper value is 128
     '''
-    init_dim = 8 #Starting size from the paper
-    layers = int(np.log2(img_dim) - 3)
+    # init_dim = 8 #Starting size from the paper
+    init_dim = img_dim // 2 // 2 # MNIST: 7, CIFAR10: 8
+    layers = int(np.round(np.log2(img_dim)) - 3) # MNIST: 4.8 --> 5
+    print("Decoder layers:", layers)
     
     mod_input = Input(shape=(h,))
     x = Dense(n*init_dim**2)(mod_input)
     x = Reshape(shape(n, init_dim, init_dim))(x)
     
-    x = Convolution2D(n, 3, 3, activation = 'elu', border_mode="same")(x)
-    x = Convolution2D(n, 3, 3, activation = 'elu', border_mode="same")(x)
+    x = Conv2D(n, (3, 3), activation='elu', padding="same")(x)
+    x = Conv2D(n, (3, 3), activation='elu', padding="same")(x)
     
     for i in range(layers):
         x = UpSampling2D(size=(2,2))(x)
-        x = Convolution2D(n, 3, 3, activation = 'elu', border_mode="same")(x)
-        x = Convolution2D(n, 3, 3, activation = 'elu', border_mode="same")(x)
+        x = Conv2D(n, (3, 3), activation='elu', padding="same")(x)
+        x = Conv2D(n, (3, 3), activation='elu', padding="same")(x)
         
-    x = Convolution2D(channels, 3, 3, activation = 'elu', border_mode="same")(x)
+    x = Conv2D(channels, (3, 3), activation='elu', padding="same")(x)
     
     return Model(mod_input,x)
 
@@ -54,19 +57,21 @@ def encoder(h, img_dim, channels, n = 128):
     n -- Number of convolution filters, paper value is 128
     '''
     init_dim = 8
-    layers = int(np.log2(img_dim) - 2)
+    layers = int(np.round(np.log2(img_dim)) - 2)
+    print("Encoder layers:", layers)
     
     mod_input = Input(shape=shape(channels, img_dim, img_dim))
-    x = Convolution2D(channels, 3, 3, activation = 'elu', border_mode="same")(mod_input)
+    x = Conv2D(channels, (3, 3), activation='elu', padding="same")(mod_input)
     
     for i in range(1, layers):
-        x = Convolution2D(i*n, 3, 3, activation = 'elu', border_mode="same")(x)
-        x = Convolution2D(i*n, 3, 3, activation = 'elu', border_mode="same", subsample=(2,2))(x)
+        x = Conv2D(i*n, (3, 3), activation='elu', padding="same")(x)
+        x = Conv2D(i*n, (3, 3), activation='elu', padding="same", strides=(2,2))(x)
     
-    x = Convolution2D(layers*n, 3, 3, activation = 'elu', border_mode="same")(x)
-    x = Convolution2D(layers*n, 3, 3, activation = 'elu', border_mode="same")(x)
+    x = Conv2D(layers*n, (3, 3), activation='elu', padding="same")(x)
+    x = Conv2D(layers*n, (3, 3), activation='elu', padding="same")(x)
     
-    x = Reshape((layers*n*init_dim**2,))(x)
+    # x = Reshape((layers*n*init_dim**2,))(x)
+    x = Flatten()(x)
     x = Dense(h)(x)
     
     return Model(mod_input,x)
