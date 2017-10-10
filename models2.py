@@ -26,8 +26,8 @@ def decoder(h, img_dim, channels, n = 128):
     n -- Number of convolution filters, paper value is 128
     '''
     # init_dim = 8 #Starting size from the paper
-    init_dim = img_dim // 2 // 2 # MNIST: 7, CIFAR10: 8
-    layers = int(np.round(np.log2(img_dim)) - 3) # MNIST: 4.8 --> 5
+    init_dim = img_dim // 2 // 2 
+    layers = int(np.round(np.log2(img_dim)) - 3) 
     print("Decoder layers:", layers)
     
     mod_input = Input(shape=(h,))
